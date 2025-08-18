@@ -1,81 +1,189 @@
 using System.Text.Json;
-using System.IO;
 
 namespace f;
 
-public class CF
+public class Dev
 {
-
+    public string? Slot { get; set; }
     public string? Name { get; set; }
     public string? Question { get; set; }
-    public string? Answer { get; set; }
-
+    public string? Answer1 { get; set; }
+    public string? Answer2 { get; set; }
+    public string? Answer3 { get; set; }
+    public string? Answer4 { get; set; }
+    public string? correctAnswer { get; set; }
 
     static string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    static string filepath = Path.Combine(appDataPath, "flashcards.json");
+
+
+
+
+    public static void DevMode()
+    {
+        string selected;
+        Console.Write("Welcome to Developer Mode! Choose an option\n 1. Create a flashcard\n 2. Delete a flashcard\n\n>");
+
+        selected = Console.ReadLine();
+        if (selected != "1" && selected != "2")
+        {
+            Console.Clear();
+            Console.WriteLine("Type only 1 or 2!\n");
+            DevMode();
+        }
+
+        if (selected == "1")
+        {
+            Console.Clear();
+            CreateFlashcard();
+        }
+        if (selected == "2")
+        {
+            Console.Clear();
+            DeleteFlashcard();
+        }
+    }
+
+
+
 
 
 
     public static void CreateFlashcard()
     {
+        string? slot;
         string? name;
         string? question;
-        string? answer;
+        string? answer1;
+        string? answer2;
+        string? answer3;
+        string? answer4;
+        string? correctanswer;
 
-        if (!File.Exists(filepath))
+
+        void NextPage()
         {
-
-            Console.WriteLine("Welcome to Developer Mode! Here you can create your own flashcard.\n");
-
-            Console.WriteLine("How do you want the flashcard to be named?");
-            name = Console.ReadLine();
-            Console.WriteLine("What will be the question of the flashcard?");
-            question = Console.ReadLine();
-            Console.WriteLine("Finally, what will be the answer of the flashcard?");
-            answer = Console.ReadLine();
-
-
-            var flashcard = new CF()
-            {
-                Name = name,
-                Question = question,
-                Answer = answer
-            };
-
-            string json = JsonSerializer.Serialize(flashcard, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(filepath, json);
-
-            Console.WriteLine("\n\n\nFlashcard saved to flashcards.json!\nFull path: "+filepath+
-                                "\n\nOh yeah, try running the program again and enter Developer Mode to see what's gonna happen =)");
+            Console.Clear();
+            Console.WriteLine("Flashcard Creation");
         }
 
+
+        Console.WriteLine("Flashcard Creation");
+
+
+        Console.Write("\nIn which slot would you want your flashcard to be saved?\n 1\n 2\n 3\n\n>");
+        slot = Console.ReadLine();
+        while (slot != "1" && slot != "2" && slot != "3")
+        {
+            Console.WriteLine("Only type 1, 2 or 3!\nIn which slot would you want your flashcard to be saved?\n 1\n 2\n 3\n\n>");
+            slot = Console.ReadLine();
+        }
+        NextPage();
+
+
+        Console.Write("\nHow do you want the flashcard to be named?\n>");
+        name = Console.ReadLine();
+        NextPage();
+
+        Console.Write("\nWhat will be the question of the flashcard?\n>");
+        question = Console.ReadLine();
+        NextPage();
+
+        Console.WriteLine("\nNow, what will be the 4 answers of the flashcard?");
+        Console.Write("1: ");
+        answer1 = Console.ReadLine();
+        Console.Write("2: ");
+        answer2 = Console.ReadLine();
+        Console.Write("3: ");
+        answer3 = Console.ReadLine();
+        Console.Write("4: ");
+        answer4 = Console.ReadLine();
+
+        Console.Write("\nFinally, which answer of the flashcard is the correct one? (1,2,3,4)\n>");
+        correctanswer = Console.ReadLine();
+        while (correctanswer != "1" && correctanswer != "2" && correctanswer != "3" && correctanswer != "4")
+        {
+            Console.Write("Only type 1, 2, 3 or 4!\nWhich answer of the flashcard is the correct one?\n>");
+            correctanswer = Console.ReadLine();
+        }
+
+
+        var cf = new Dev() //cf = custom flashcard
+        {
+            Slot = Path.Combine(appDataPath, "slot" + slot + ".json"),
+            Name = name,
+            Question = question,
+            Answer1 = answer1,
+            Answer2 = answer2,
+            Answer3 = answer3,
+            Answer4 = answer4,
+            correctAnswer = correctanswer
+        };
+
+
+        string json = JsonSerializer.Serialize(cf, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(cf.Slot, json);
+        Console.WriteLine("\n\n\nFlashcard saved to slot" + slot + ".json!\nFull path: " + cf.Slot);
+    }
+
+
+
+
+
+
+
+
+    public static void UseFlashcard(int selectedSlot)
+    {
+
+        var cf = new Dev(); //cf = custom flashcard
+        string slotPath = Path.Combine(appDataPath, "slot" + selectedSlot + ".json");
+        string slotContent = File.ReadAllText(slotPath);
+        cf = JsonSerializer.Deserialize<Dev>(slotContent);
+
+        Console.WriteLine(cf.Name.ToUpper());
+        Console.WriteLine("\n" + cf.Question);
+        Console.Write(" 1. " + cf.Answer1 + "\n 2. " + cf.Answer2 + "\n 3. " + cf.Answer3 + "\n 4. " + cf.Answer4 + "\n\n>");
+
+
+        string answer = Console.ReadLine();
+
+        if (answer == cf.correctAnswer)
+        {
+            Console.Clear();
+            Console.WriteLine("Correct!\n\n\n");
+        }
         else
         {
-            var content = new CF();
-            string existingJson = File.ReadAllText(filepath);
-            content = JsonSerializer.Deserialize<CF>(existingJson);
+            Console.Clear();
+            Console.WriteLine("Incorrect...\n\n\n");
+        }
+    }
 
-            Console.WriteLine(content.Name.ToUpper());
-            Console.WriteLine("\n" + content.Question);
-            answer = Console.ReadLine();
 
-            if (answer == content.Answer)
-            {
-                Console.Clear();
-                Console.WriteLine("Correct!\n\n\n");
-            }
-            else
-            {
-                Console.Clear();
-                Console.WriteLine("How did you fail your own question?\n\n\n");
-            }
 
-            Console.WriteLine("Now your flashcard...\nwas deleted right now.\n\nYeah...\n\n");
-            Console.WriteLine("That's because I haven't tried implementing\na store-multiple-questions-on-one-json-file thing yet.\n\n");
-            Console.WriteLine("Sorry, you have to wait for that.\n\n\nSee you in the next patch!");
 
-            File.Delete(filepath);
+
+
+
+    public static void DeleteFlashcard()
+    {
+        int selectedSlot;
+
+        Console.Write("\n\n\nSelect a flashcard to deleted by typing the corresponding number next to its name:\n 1\n 2\n 3\n\n>");
+        while (!int.TryParse(Console.ReadLine(), out selectedSlot))
+        {
+            Console.Clear();
+            DeleteFlashcard();
         }
 
-    } 
-}
+        string slotPath = Path.Combine(appDataPath, "slot" + selectedSlot + ".json");
+        File.WriteAllText(slotPath, "");
+
+        Console.Clear();
+        Console.WriteLine("The flashcard in slot " + selectedSlot + "was removed! Press ENTER to re-access Developer Mode.");
+        Console.ReadKey();
+        Console.Clear();
+        DevMode();
+    }
+
+} 
